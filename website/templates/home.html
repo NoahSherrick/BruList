@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title%}BrewList{% endblock %}
+{% block content %}
+
+<body onload="initialize()">
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDGg9bUoNa8p-UxBnkwF86Yr1XuKM4XOLs&libraries=places&callback=initMap">
+        </script>
+    <h1 class="topTitle">Welcome to Br&uuml;List!</h1>
+    <br>
+    <h2 class="topTitle">Enter Your location to get started</h2>
+    <br>
+
+    <div class="form-group">
+        <input type="text" class="form-control yeeBoi" id="zip" name="zip"
+            placeholder="Enter the Zipcode You Would Like to Search" />
+        <button onClick="getZip();" class="btn btn-success">Search</button>
+    </div>
+    <br>
+    <br>
+    <div id="map"></div>
+    <script>
+        var geocoder
+        var map
+        var options = {
+            center: { lat: 39.2904, lng: -76.6122 },
+            zoom: 15
+        }
+
+        function initialize() {
+            map = new google.maps.Map(document.getElementById('map'), options)
+            geocoder = new google.maps.Geocoder();
+            var latlng = options.center;
+            var mapOptions = {
+                zoom: options.zoom,
+                center: latlng,
+            }
+        }
+
+        function getZip() {
+            let inputVal = document.getElementById("zip").value
+            codeAddress(inputVal)
+        }
+
+        function codeAddress(inputVal) {
+            geocoder.geocode({
+                componentRestrictions: {
+                    country: 'US',
+                    postalCode: inputVal
+                }
+            }, function (results, status) {
+                if (status == 'OK') {
+                    map.setCenter(results[0].geometry.location);
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location
+                    });
+                    var axios = require('axios');
+
+                    var config = {
+                        method: 'get',
+                        url: 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + results[0].geometry.location + '&radius=1500&type=restaurant&keyword=cruise&key=YOUR_API_KEY',
+                        headers: {}
+                    };
+
+                    axios(config)
+                        .then(function (response) {
+                            console.log(JSON.stringify(response.data));
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+
+                } else {
+                    window.alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+
+            function getNearbyPlaces(inputVal) {
+                let request = {
+                    location: position,
+                    rankBy: google.maps.places.RankBy.DISTANCE,
+                    keyword: 'brewery'
+                };
+
+                service = new google.maps.places.PlacesService(map);
+                service.nearbySearch(request, nearbyCallback);
+            }
+
+            // Handle the results (up to 20) of the Nearby Search
+            function nearbyCallback(results, status) {
+                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                    createMarkers(results);
+                }
+            }
+
+            /* TODO: Step 3C, Generate markers for search results */
+            // Set markers at the location of each place result
+            function createMarkers(places) {
+                places.forEach(place => {
+                    let marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: map,
+                        title: place.name
+                    });
+
+                    /* TODO: Step 4B: Add click listeners to the markers */
+
+                    // Adjust the map bounds to include the location of this marker
+                    bounds.extend(place.geometry.location);
+                });
+                /* Once all the markers have been placed, adjust the bounds of the map to
+                 * show all the markers within the visible area. */
+                map.fitBounds(bounds);
+            }
+
+
+        }
+
+
+        //code to look at https://github.com/googlecodelabs/google-maps-nearby-search-js/blob/master/step3/index.html
+
+
+
+
+
+
+
+
+
+        // for(var i = 0; i < markers.length; i++){
+        //     addMarker(markers[i])
+        // }
+
+
+        // //Add Marker Function
+        // for (let i = 0; i < 20; i++) {
+        //     function addMarker(config) {
+        //         var marker = new google.maps.Marker({
+        //             position: config.coords,
+        //             map: map
+        //         })
+        //     }
+        // }
+
+
+
+
+
+
+//STATIC CODE
+// var marker = new google.maps.Marker({
+//     position:{lat: 39.4195499, lng: -76.7802528},
+//     map: map
+// })
+
+// var infoWindow = new google.maps.InfoWindow({
+//     content:'<h2>Hello</h2>'
+// })
+
+// marker.addListener('click', function(){
+//     infoWindow.open(map, marker);
+// })
+
+
+    </script>
+</body>
+{% endblock %}
